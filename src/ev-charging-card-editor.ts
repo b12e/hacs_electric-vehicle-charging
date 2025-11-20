@@ -24,7 +24,7 @@ export class EVChargingCardEditor extends LitElement implements LovelaceCardEdit
     this._config = config;
   }
 
-  private _valueChanged(ev: CustomEvent): void {
+  private _valueChanged(ev: Event | CustomEvent): void {
     if (!this._config || !this.hass) {
       return;
     }
@@ -32,16 +32,20 @@ export class EVChargingCardEditor extends LitElement implements LovelaceCardEdit
     const target = ev.target as any;
     const configValue = target.configValue as keyof EVChargingCardConfig;
 
+    if (!configValue) {
+      return;
+    }
+
     // Handle different event types
     let value: any;
-    if (ev.detail && ev.detail.value !== undefined) {
+    if ('detail' in ev && ev.detail && ev.detail.value !== undefined) {
       // ha-entity-picker and similar components
       value = ev.detail.value;
     } else if (target.checked !== undefined) {
       // ha-switch
       value = target.checked;
     } else {
-      // paper-input and other inputs
+      // ha-textfield and other inputs
       value = target.value;
     }
 
@@ -53,16 +57,14 @@ export class EVChargingCardEditor extends LitElement implements LovelaceCardEdit
       ...this._config,
     };
 
-    if (configValue) {
-      if (value === '' || value === undefined) {
-        delete newConfig[configValue];
+    if (value === '' || value === undefined) {
+      delete newConfig[configValue];
+    } else {
+      // Convert to number for max_capacity
+      if (configValue === 'max_capacity') {
+        (newConfig as any)[configValue] = parseFloat(value) || 0;
       } else {
-        // Convert to number for max_capacity
-        if (configValue === 'max_capacity') {
-          (newConfig as any)[configValue] = parseFloat(value) || 0;
-        } else {
-          (newConfig as any)[configValue] = value;
-        }
+        (newConfig as any)[configValue] = value;
       }
     }
 
@@ -93,39 +95,45 @@ export class EVChargingCardEditor extends LitElement implements LovelaceCardEdit
         <div class="section">
           <div class="section-title">Required Settings</div>
 
-          <ha-entity-picker
-            .label=${'Battery Entity (Required)'}
-            .hass=${this.hass}
-            .value=${this._config.battery_entity || ''}
-            .configValue=${'battery_entity'}
-            @value-changed=${this._valueChanged}
-            .includeDomains=${['sensor']}
-            allow-custom-entity
-          ></ha-entity-picker>
+          <div class="input-group">
+            <label>Battery Entity (Required)</label>
+            <ha-entity-picker
+              .hass=${this.hass}
+              .value=${this._config.battery_entity || ''}
+              .configValue=${'battery_entity'}
+              @value-changed=${this._valueChanged}
+              .includeDomains=${['sensor']}
+              allow-custom-entity
+            ></ha-entity-picker>
+          </div>
 
-          <paper-input
-            label="Maximum Capacity (kWh)"
-            .value=${this._config.max_capacity || ''}
-            .configValue=${'max_capacity'}
-            type="number"
-            step="0.1"
-            min="0"
-            @value-changed=${this._valueChanged}
-          ></paper-input>
-          <div class="help-text">
-            Enter your battery's maximum capacity in kWh (e.g., 17.4 for a 17.4 kWh battery)
+          <div class="input-group">
+            <label>Maximum Capacity (kWh)</label>
+            <ha-textfield
+              .value=${this._config.max_capacity || ''}
+              .configValue=${'max_capacity'}
+              type="number"
+              step="0.1"
+              min="0"
+              @input=${this._valueChanged}
+            ></ha-textfield>
+            <div class="help-text">
+              Enter your battery's maximum capacity in kWh (e.g., 17.4 for a 17.4 kWh battery)
+            </div>
           </div>
         </div>
 
         <div class="section">
           <div class="section-title">Display Options</div>
 
-          <paper-input
-            label="Card Name (Optional)"
-            .value=${this._config.name || ''}
-            .configValue=${'name'}
-            @value-changed=${this._valueChanged}
-          ></paper-input>
+          <div class="input-group">
+            <label>Card Name (Optional)</label>
+            <ha-textfield
+              .value=${this._config.name || ''}
+              .configValue=${'name'}
+              @input=${this._valueChanged}
+            ></ha-textfield>
+          </div>
 
           <ha-formfield label="Show Card Name">
             <ha-switch
@@ -158,35 +166,41 @@ export class EVChargingCardEditor extends LitElement implements LovelaceCardEdit
             Add these entities to display real-time charging information and enable animations
           </div>
 
-          <ha-entity-picker
-            .label=${'Power Entity (Watts)'}
-            .hass=${this.hass}
-            .value=${this._config.power_entity || ''}
-            .configValue=${'power_entity'}
-            @value-changed=${this._valueChanged}
-            .includeDomains=${['sensor']}
-            allow-custom-entity
-          ></ha-entity-picker>
+          <div class="input-group">
+            <label>Power Entity (Watts)</label>
+            <ha-entity-picker
+              .hass=${this.hass}
+              .value=${this._config.power_entity || ''}
+              .configValue=${'power_entity'}
+              @value-changed=${this._valueChanged}
+              .includeDomains=${['sensor']}
+              allow-custom-entity
+            ></ha-entity-picker>
+          </div>
 
-          <ha-entity-picker
-            .label=${'Voltage Entity (Optional)'}
-            .hass=${this.hass}
-            .value=${this._config.voltage_entity || ''}
-            .configValue=${'voltage_entity'}
-            @value-changed=${this._valueChanged}
-            .includeDomains=${['sensor']}
-            allow-custom-entity
-          ></ha-entity-picker>
+          <div class="input-group">
+            <label>Voltage Entity</label>
+            <ha-entity-picker
+              .hass=${this.hass}
+              .value=${this._config.voltage_entity || ''}
+              .configValue=${'voltage_entity'}
+              @value-changed=${this._valueChanged}
+              .includeDomains=${['sensor']}
+              allow-custom-entity
+            ></ha-entity-picker>
+          </div>
 
-          <ha-entity-picker
-            .label=${'Current/Amperage Entity (Optional)'}
-            .hass=${this.hass}
-            .value=${this._config.amperage_entity || ''}
-            .configValue=${'amperage_entity'}
-            @value-changed=${this._valueChanged}
-            .includeDomains=${['sensor']}
-            allow-custom-entity
-          ></ha-entity-picker>
+          <div class="input-group">
+            <label>Current/Amperage Entity</label>
+            <ha-entity-picker
+              .hass=${this.hass}
+              .value=${this._config.amperage_entity || ''}
+              .configValue=${'amperage_entity'}
+              @value-changed=${this._valueChanged}
+              .includeDomains=${['sensor']}
+              allow-custom-entity
+            ></ha-entity-picker>
+          </div>
         </div>
 
         <div class="tips">
@@ -245,15 +259,25 @@ export class EVChargingCardEditor extends LitElement implements LovelaceCardEdit
       .help-text {
         font-size: 12px;
         color: var(--secondary-text-color);
-        margin-top: 8px;
-        margin-bottom: 16px;
+        margin-top: 4px;
         font-style: italic;
       }
 
-      ha-entity-picker,
-      paper-input {
-        display: block;
+      .input-group {
         margin-bottom: 16px;
+      }
+
+      .input-group label {
+        display: block;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--primary-text-color);
+        margin-bottom: 8px;
+      }
+
+      ha-entity-picker,
+      ha-textfield {
+        display: block;
         width: 100%;
       }
 
