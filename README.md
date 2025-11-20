@@ -1,10 +1,6 @@
 # Electric Vehicle Charging Card
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![GitHub Release](https://img.shields.io/github/release/yourusername/hacs_electric-vehicle-charging.svg)](https://github.com/yourusername/hacs_electric-vehicle-charging/releases)
-[![License](https://img.shields.io/github/license/yourusername/hacs_electric-vehicle-charging.svg)](LICENSE)
-
-A beautiful and informative custom card for Home Assistant to display your electric vehicle's charging progress.
+A custom card for Home Assistant to display your electric vehicle's charging progress.
 
 ## Features
 
@@ -14,15 +10,6 @@ A beautiful and informative custom card for Home Assistant to display your elect
 - ⚙️ **Fully configurable** - set your battery capacity and connect your own entities
 - 📱 **Responsive design** that works perfectly on mobile and desktop
 - 🎨 **Theme-aware** - automatically adapts to your Home Assistant theme
-
-## Preview
-
-The card displays:
-- A visual battery icon with fill level
-- Current and maximum capacity in kWh
-- Percentage charged
-- Animated lightning bolt when charging (speed varies with power level)
-- Optional metrics panel showing Power, Voltage, and Current
 
 ## Installation
 
@@ -36,22 +23,8 @@ The card displays:
 6. Select category: "Lovelace"
 7. Click "Add"
 8. Find "Electric Vehicle Charging Card" in the list and click "Install"
-9. Restart Home Assistant
+9. Reload
 
-### Manual Installation
-
-1. Download the `ev-charging-card.js` file from the [latest release](https://github.com/yourusername/hacs_electric-vehicle-charging/releases)
-2. Copy it to your `config/www` folder
-3. Add the following to your `configuration.yaml`:
-
-```yaml
-lovelace:
-  resources:
-    - url: /local/ev-charging-card.js
-      type: module
-```
-
-4. Restart Home Assistant
 
 ## Configuration
 
@@ -90,32 +63,6 @@ show_metrics: true
 | `amperage_entity` | string | No | - | Entity ID for current/amperage |
 | `show_name` | boolean | No | `true` | Show the card title |
 | `show_metrics` | boolean | No | `true` | Show the metrics panel |
-
-## Usage Examples
-
-### Basic Usage
-
-For a simple display showing just the battery level:
-
-```yaml
-type: custom:ev-charging-card
-battery_entity: sensor.ev_battery
-max_capacity: 40.0
-```
-
-### With Charging Metrics
-
-To show detailed charging information:
-
-```yaml
-type: custom:ev-charging-card
-name: "Tesla Model 3 Charging"
-battery_entity: sensor.tesla_battery_level
-max_capacity: 75.0
-power_entity: sensor.tesla_charging_power
-voltage_entity: sensor.tesla_charger_voltage
-amperage_entity: sensor.tesla_charger_current
-```
 
 ### Home Battery System
 
@@ -158,60 +105,3 @@ template:
         state: >
           {{ states('sensor.ev_charger_power') | float }}
 ```
-
-## Troubleshooting
-
-### Card not appearing
-
-1. Make sure you've cleared your browser cache (Ctrl+F5)
-2. Check that the resource is correctly loaded in Developer Tools → Statistics
-3. Verify that the card is available in the card picker
-
-### "Entity not found" error
-
-- Double-check that your entity IDs are correct
-- Verify the entities exist in Developer Tools → States
-
-### Battery not filling correctly
-
-- Ensure your `battery_entity` reports in kWh (or create a template sensor to convert it)
-- Verify that `max_capacity` matches your actual battery capacity
-
-## Development
-
-### Building from source
-
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/hacs_electric-vehicle-charging.git
-cd hacs_electric-vehicle-charging
-
-# Install dependencies
-npm install
-
-# Build the card
-npm run build
-
-# Watch for changes during development
-npm run watch
-```
-
-The compiled file will be in the `dist` folder.
-
-### Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Credits
-
-Created for the Home Assistant community.
-
-## Support
-
-If you find this card useful, please consider starring the repository on GitHub!
-
-For issues and feature requests, please use the [GitHub issues page](https://github.com/yourusername/hacs_electric-vehicle-charging/issues).
