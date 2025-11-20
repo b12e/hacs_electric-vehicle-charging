@@ -24,298 +24,222 @@ export class EVChargingCardEditor extends LitElement implements LovelaceCardEdit
     this._config = config;
   }
 
-  private _valueChanged(ev: Event | CustomEvent): void {
-    if (!this._config || !this.hass) {
-      return;
-    }
-
-    const target = ev.target as any;
-    const configValue = target.configValue as keyof EVChargingCardConfig;
-
-    if (!configValue) {
-      return;
-    }
-
-    // Handle different event types
-    let value: any;
-    if ('detail' in ev && ev.detail && ev.detail.value !== undefined) {
-      // ha-entity-picker and similar components
-      value = ev.detail.value;
-    } else if (target.checked !== undefined) {
-      // ha-switch
-      value = target.checked;
-    } else {
-      // ha-textfield and other inputs
-      value = target.value;
-    }
-
-    if (this._config[configValue] === value) {
-      return;
-    }
-
-    const newConfig = {
-      ...this._config,
-    };
-
-    if (value === '' || value === undefined) {
-      delete newConfig[configValue];
-    } else {
-      // Convert to number for max_capacity
-      if (configValue === 'max_capacity') {
-        (newConfig as any)[configValue] = parseFloat(value) || 0;
-      } else {
-        (newConfig as any)[configValue] = value;
-      }
-    }
-
-    fireEvent(this, 'config-changed', { config: newConfig });
-  }
-
-  private _entitiesByDomain(domain: string): string[] {
-    if (!this.hass) return [];
-    return Object.keys(this.hass.states)
-      .filter((entityId) => entityId.startsWith(`${domain}.`))
-      .sort();
-  }
-
   protected render(): TemplateResult {
     if (!this.hass || !this._config) {
       return html``;
     }
 
-    const entities = this._entitiesByDomain('sensor');
-
     return html`
       <div class="card-config">
-        <div class="header">
-          <div class="title">Electric Vehicle Charging Card Configuration</div>
-          <div class="subtitle">Configure your EV charging display</div>
-        </div>
+        <!-- Battery Entity -->
+        <ha-entity-picker
+          .hass=${this.hass}
+          .value=${this._config.battery_entity}
+          .label=${'Battery Entity (required)'}
+          .includeDomains=${['sensor']}
+          .required=${true}
+          allow-custom-entity
+          @value-changed=${this._batteryChanged}
+        ></ha-entity-picker>
 
-        <div class="section">
-          <div class="section-title">Required Settings</div>
+        <!-- Max Capacity -->
+        <ha-textfield
+          .label=${'Maximum Capacity (kWh)'}
+          .value=${this._config.max_capacity}
+          .type=${'number'}
+          .step=${0.1}
+          .min=${0}
+          .required=${true}
+          @input=${this._maxCapacityChanged}
+        ></ha-textfield>
 
-          <div class="input-group">
-            <label>Battery Entity (Required)</label>
-            <ha-entity-picker
-              .hass=${this.hass}
-              .value=${this._config.battery_entity || ''}
-              .configValue=${'battery_entity'}
-              @value-changed=${this._valueChanged}
-              .includeDomains=${['sensor']}
-              allow-custom-entity
-            ></ha-entity-picker>
-          </div>
+        <!-- Card Name -->
+        <ha-textfield
+          .label=${'Card Name (optional)'}
+          .value=${this._config.name || ''}
+          @input=${this._nameChanged}
+        ></ha-textfield>
 
-          <div class="input-group">
-            <label>Maximum Capacity (kWh)</label>
-            <ha-textfield
-              .value=${this._config.max_capacity || ''}
-              .configValue=${'max_capacity'}
-              type="number"
-              step="0.1"
-              min="0"
-              @input=${this._valueChanged}
-            ></ha-textfield>
-            <div class="help-text">
-              Enter your battery's maximum capacity in kWh (e.g., 17.4 for a 17.4 kWh battery)
-            </div>
-          </div>
-        </div>
+        <!-- Power Entity -->
+        <ha-entity-picker
+          .hass=${this.hass}
+          .value=${this._config.power_entity || ''}
+          .label=${'Power Entity (optional)'}
+          .includeDomains=${['sensor']}
+          allow-custom-entity
+          @value-changed=${this._powerChanged}
+        ></ha-entity-picker>
 
-        <div class="section">
-          <div class="section-title">Display Options</div>
+        <!-- Voltage Entity -->
+        <ha-entity-picker
+          .hass=${this.hass}
+          .value=${this._config.voltage_entity || ''}
+          .label=${'Voltage Entity (optional)'}
+          .includeDomains=${['sensor']}
+          allow-custom-entity
+          @value-changed=${this._voltageChanged}
+        ></ha-entity-picker>
 
-          <div class="input-group">
-            <label>Card Name (Optional)</label>
-            <ha-textfield
-              .value=${this._config.name || ''}
-              .configValue=${'name'}
-              @input=${this._valueChanged}
-            ></ha-textfield>
-          </div>
+        <!-- Amperage Entity -->
+        <ha-entity-picker
+          .hass=${this.hass}
+          .value=${this._config.amperage_entity || ''}
+          .label=${'Current/Amperage Entity (optional)'}
+          .includeDomains=${['sensor']}
+          allow-custom-entity
+          @value-changed=${this._amperageChanged}
+        ></ha-entity-picker>
 
-          <ha-formfield label="Show Card Name">
-            <ha-switch
-              .checked=${this._config.show_name !== false}
-              .configValue=${'show_name'}
-              @change=${this._valueChanged}
-            ></ha-switch>
-          </ha-formfield>
+        <!-- Switches -->
+        <ha-formfield .label=${'Show Card Name'}>
+          <ha-switch
+            .checked=${this._config.show_name !== false}
+            @change=${this._showNameChanged}
+          ></ha-switch>
+        </ha-formfield>
 
-          <ha-formfield label="Show Metrics Panel">
-            <ha-switch
-              .checked=${this._config.show_metrics !== false}
-              .configValue=${'show_metrics'}
-              @change=${this._valueChanged}
-            ></ha-switch>
-          </ha-formfield>
+        <ha-formfield .label=${'Show Metrics Panel'}>
+          <ha-switch
+            .checked=${this._config.show_metrics !== false}
+            @change=${this._showMetricsChanged}
+          ></ha-switch>
+        </ha-formfield>
 
-          <ha-formfield label="Compact Mode">
-            <ha-switch
-              .checked=${this._config.compact === true}
-              .configValue=${'compact'}
-              @change=${this._valueChanged}
-            ></ha-switch>
-          </ha-formfield>
-        </div>
-
-        <div class="section">
-          <div class="section-title">Charging Metrics (Optional)</div>
-          <div class="help-text">
-            Add these entities to display real-time charging information and enable animations
-          </div>
-
-          <div class="input-group">
-            <label>Power Entity (Watts)</label>
-            <ha-entity-picker
-              .hass=${this.hass}
-              .value=${this._config.power_entity || ''}
-              .configValue=${'power_entity'}
-              @value-changed=${this._valueChanged}
-              .includeDomains=${['sensor']}
-              allow-custom-entity
-            ></ha-entity-picker>
-          </div>
-
-          <div class="input-group">
-            <label>Voltage Entity</label>
-            <ha-entity-picker
-              .hass=${this.hass}
-              .value=${this._config.voltage_entity || ''}
-              .configValue=${'voltage_entity'}
-              @value-changed=${this._valueChanged}
-              .includeDomains=${['sensor']}
-              allow-custom-entity
-            ></ha-entity-picker>
-          </div>
-
-          <div class="input-group">
-            <label>Current/Amperage Entity</label>
-            <ha-entity-picker
-              .hass=${this.hass}
-              .value=${this._config.amperage_entity || ''}
-              .configValue=${'amperage_entity'}
-              @value-changed=${this._valueChanged}
-              .includeDomains=${['sensor']}
-              allow-custom-entity
-            ></ha-entity-picker>
-          </div>
-        </div>
-
-        <div class="tips">
-          <div class="tips-title">💡 Tips</div>
-          <ul>
-            <li>The battery entity should report in kWh</li>
-            <li>Power entity enables the animated charging indicator</li>
-            <li>Animation speed changes based on charging power</li>
-            <li>All metric entities are optional but recommended for full functionality</li>
-          </ul>
-        </div>
+        <ha-formfield .label=${'Compact Mode (Mushroom Style)'}>
+          <ha-switch
+            .checked=${this._config.compact === true}
+            @change=${this._compactChanged}
+          ></ha-switch>
+        </ha-formfield>
       </div>
     `;
   }
 
+  private _batteryChanged(ev: CustomEvent): void {
+    if (!this._config || !ev.detail.value) {
+      return;
+    }
+    this._updateConfig({ battery_entity: ev.detail.value });
+  }
+
+  private _maxCapacityChanged(ev: Event): void {
+    const target = ev.target as HTMLInputElement;
+    const value = parseFloat(target.value);
+    if (!this._config || isNaN(value)) {
+      return;
+    }
+    this._updateConfig({ max_capacity: value });
+  }
+
+  private _nameChanged(ev: Event): void {
+    const target = ev.target as HTMLInputElement;
+    if (!this._config) {
+      return;
+    }
+    const value = target.value;
+    if (value === '') {
+      const newConfig = { ...this._config };
+      delete newConfig.name;
+      this._config = newConfig;
+      fireEvent(this, 'config-changed', { config: newConfig });
+    } else {
+      this._updateConfig({ name: value });
+    }
+  }
+
+  private _powerChanged(ev: CustomEvent): void {
+    if (!this._config) {
+      return;
+    }
+    const value = ev.detail.value;
+    if (value === '') {
+      const newConfig = { ...this._config };
+      delete newConfig.power_entity;
+      this._config = newConfig;
+      fireEvent(this, 'config-changed', { config: newConfig });
+    } else {
+      this._updateConfig({ power_entity: value });
+    }
+  }
+
+  private _voltageChanged(ev: CustomEvent): void {
+    if (!this._config) {
+      return;
+    }
+    const value = ev.detail.value;
+    if (value === '') {
+      const newConfig = { ...this._config };
+      delete newConfig.voltage_entity;
+      this._config = newConfig;
+      fireEvent(this, 'config-changed', { config: newConfig });
+    } else {
+      this._updateConfig({ voltage_entity: value });
+    }
+  }
+
+  private _amperageChanged(ev: CustomEvent): void {
+    if (!this._config) {
+      return;
+    }
+    const value = ev.detail.value;
+    if (value === '') {
+      const newConfig = { ...this._config };
+      delete newConfig.amperage_entity;
+      this._config = newConfig;
+      fireEvent(this, 'config-changed', { config: newConfig });
+    } else {
+      this._updateConfig({ amperage_entity: value });
+    }
+  }
+
+  private _showNameChanged(ev: Event): void {
+    const target = ev.target as HTMLInputElement;
+    if (!this._config) {
+      return;
+    }
+    this._updateConfig({ show_name: target.checked });
+  }
+
+  private _showMetricsChanged(ev: Event): void {
+    const target = ev.target as HTMLInputElement;
+    if (!this._config) {
+      return;
+    }
+    this._updateConfig({ show_metrics: target.checked });
+  }
+
+  private _compactChanged(ev: Event): void {
+    const target = ev.target as HTMLInputElement;
+    if (!this._config) {
+      return;
+    }
+    this._updateConfig({ compact: target.checked });
+  }
+
+  private _updateConfig(updates: Partial<EVChargingCardConfig>): void {
+    this._config = { ...this._config, ...updates };
+    fireEvent(this, 'config-changed', { config: this._config });
+  }
+
   static get styles(): CSSResultGroup {
     return css`
-      :host {
-        display: block;
-      }
-
       .card-config {
-        padding: 16px;
-      }
-
-      .header {
-        margin-bottom: 24px;
-      }
-
-      .title {
-        font-size: 20px;
-        font-weight: 500;
-        color: var(--primary-text-color);
-        margin-bottom: 4px;
-      }
-
-      .subtitle {
-        font-size: 14px;
-        color: var(--secondary-text-color);
-      }
-
-      .section {
-        margin-bottom: 24px;
-        padding: 16px;
-        background: var(--secondary-background-color);
-        border-radius: 8px;
-      }
-
-      .section-title {
-        font-size: 16px;
-        font-weight: 500;
-        color: var(--primary-text-color);
-        margin-bottom: 16px;
-      }
-
-      .help-text {
-        font-size: 12px;
-        color: var(--secondary-text-color);
-        margin-top: 4px;
-        font-style: italic;
-      }
-
-      .input-group {
-        margin-bottom: 16px;
-      }
-
-      .input-group label {
-        display: block;
-        font-size: 14px;
-        font-weight: 500;
-        color: var(--primary-text-color);
-        margin-bottom: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding: 16px 0;
       }
 
       ha-entity-picker,
       ha-textfield {
-        display: block;
         width: 100%;
       }
 
       ha-formfield {
         display: flex;
         align-items: center;
-        margin-bottom: 16px;
+        justify-content: space-between;
         padding: 8px 0;
-      }
-
-      ha-switch {
-        margin-left: auto;
-      }
-
-      .tips {
-        padding: 16px;
-        background: var(--info-color, #2196f3);
-        background: color-mix(in srgb, var(--info-color, #2196f3) 10%, transparent);
-        border-radius: 8px;
-        border-left: 4px solid var(--info-color, #2196f3);
-      }
-
-      .tips-title {
-        font-size: 14px;
-        font-weight: 500;
-        color: var(--primary-text-color);
-        margin-bottom: 8px;
-      }
-
-      .tips ul {
-        margin: 0;
-        padding-left: 20px;
-        color: var(--secondary-text-color);
-        font-size: 13px;
-      }
-
-      .tips li {
-        margin-bottom: 4px;
       }
     `;
   }

@@ -16,9 +16,17 @@ export declare class EVChargingCardEditor extends LitElement implements Lovelace
     hass: HomeAssistant;
     private _config;
     setConfig(config: EVChargingCardConfig): void;
-    private _valueChanged;
-    private _entitiesByDomain;
     protected render(): TemplateResult;
+    private _batteryChanged;
+    private _maxCapacityChanged;
+    private _nameChanged;
+    private _powerChanged;
+    private _voltageChanged;
+    private _amperageChanged;
+    private _showNameChanged;
+    private _showMetricsChanged;
+    private _compactChanged;
+    private _updateConfig;
     static get styles(): CSSResultGroup;
 }
 declare global {
