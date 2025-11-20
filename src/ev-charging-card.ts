@@ -146,8 +146,35 @@ export class EVChargingCard extends LitElement {
     const isCharging = this.isCharging();
     const chargingSpeed = this.getChargingSpeed();
 
+    // Compact mode - true Mushroom style (single line)
+    if (this.config.compact) {
+      return html`
+        <ha-card class="compact">
+          <div class="mushroom-layout">
+            <div class="mushroom-icon-container">
+              <div class="mushroom-icon ${isCharging ? 'charging' : ''}">
+                ${isCharging
+                  ? html`<div class="charging-bolt ${chargingSpeed}">⚡</div>`
+                  : html`<div class="battery-static">🔋</div>`}
+              </div>
+            </div>
+            <div class="mushroom-content">
+              <div class="mushroom-title">
+                ${this.config.name || 'Battery'} • ${percentage.toFixed(0)}%
+              </div>
+              <div class="mushroom-state">
+                ${currentBattery.toFixed(1)} / ${maxCapacity.toFixed(1)} kWh
+                ${isCharging && power > 0 ? html` • ${power.toFixed(0)}W` : ''}
+              </div>
+            </div>
+          </div>
+        </ha-card>
+      `;
+    }
+
+    // Regular mode - more detailed
     return html`
-      <ha-card class="${this.config.compact ? 'compact' : ''}">
+      <ha-card>
         <div class="card-content">
           ${this.config.show_name && this.config.name
             ? html`<div class="card-header">
@@ -252,10 +279,6 @@ export class EVChargingCard extends LitElement {
         padding: 12px;
       }
 
-      ha-card.compact {
-        padding: 8px 12px;
-      }
-
       .card-content {
         display: flex;
         flex-direction: column;
@@ -280,6 +303,85 @@ export class EVChargingCard extends LitElement {
         font-weight: 500;
         color: var(--primary-text-color);
         line-height: 1.2;
+      }
+
+      /* ========================================
+         MUSHROOM COMPACT MODE
+         ======================================== */
+      ha-card.compact {
+        padding: 12px;
+      }
+
+      .mushroom-layout {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .mushroom-icon-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        width: 42px;
+        height: 42px;
+      }
+
+      .mushroom-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: color-mix(
+          in srgb,
+          var(--state-icon-color, var(--state-inactive-color)) 10%,
+          transparent
+        );
+        transition: background 0.3s ease;
+      }
+
+      .mushroom-icon.charging {
+        background: color-mix(
+          in srgb,
+          var(--state-icon-active-color, var(--state-active-color)) 20%,
+          transparent
+        );
+      }
+
+      .mushroom-icon .charging-bolt,
+      .mushroom-icon .battery-static {
+        font-size: 24px;
+        line-height: 1;
+      }
+
+      .mushroom-content {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        flex: 1;
+        min-width: 0;
+      }
+
+      .mushroom-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--primary-text-color);
+        line-height: 1.2;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .mushroom-state {
+        font-size: 12px;
+        font-weight: 400;
+        color: var(--secondary-text-color);
+        line-height: 1.2;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       /* Main Section - Horizontal Layout (Mushroom Style) */
@@ -467,29 +569,6 @@ export class EVChargingCard extends LitElement {
           flex: none;
           width: 100%;
         }
-      }
-
-      /* Compact Mode */
-      ha-card.compact .main-section {
-        gap: 12px;
-      }
-
-      ha-card.compact .icon-container {
-        width: 36px;
-        height: 36px;
-      }
-
-      ha-card.compact .charging-bolt,
-      ha-card.compact .battery-static {
-        font-size: 24px;
-      }
-
-      ha-card.compact .percentage {
-        font-size: 18px;
-      }
-
-      ha-card.compact .capacity {
-        font-size: 12px;
       }
     `;
   }
