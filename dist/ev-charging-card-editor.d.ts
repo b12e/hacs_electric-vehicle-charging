@@ -15,7 +15,9 @@ interface EVChargingCardConfig {
 export declare class EVChargingCardEditor extends LitElement implements LovelaceCardEditor {
     hass: HomeAssistant;
     private _config;
+    private _helpers?;
     setConfig(config: EVChargingCardConfig): void;
+    protected loadCardHelpers(): Promise<void>;
     protected shouldUpdate(): boolean;
     private _renderEntityPicker;
     protected render(): TemplateResult;

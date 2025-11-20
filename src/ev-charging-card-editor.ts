@@ -19,6 +19,7 @@ interface EVChargingCardConfig {
 export class EVChargingCardEditor extends LitElement implements LovelaceCardEditor {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config!: EVChargingCardConfig;
+  @state() private _helpers?: any;
 
   public setConfig(config: EVChargingCardConfig): void {
     this._config = {
@@ -27,6 +28,11 @@ export class EVChargingCardEditor extends LitElement implements LovelaceCardEdit
       compact: false,
       ...config,
     };
+    this.loadCardHelpers();
+  }
+
+  protected async loadCardHelpers(): Promise<void> {
+    this._helpers = await (window as any).loadCardHelpers();
   }
 
   protected shouldUpdate(): boolean {
