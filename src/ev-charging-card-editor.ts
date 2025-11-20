@@ -12,6 +12,7 @@ interface EVChargingCardConfig {
   amperage_entity?: string;
   show_name?: boolean;
   show_metrics?: boolean;
+  compact?: boolean;
 }
 
 @customElement('ev-charging-card-editor')
@@ -121,6 +122,14 @@ export class EVChargingCardEditor extends LitElement implements LovelaceCardEdit
             <ha-switch
               .checked=${this._config.show_metrics !== false}
               .configValue=${'show_metrics'}
+              @change=${this._valueChanged}
+            ></ha-switch>
+          </ha-formfield>
+
+          <ha-formfield label="Compact Mode">
+            <ha-switch
+              .checked=${this._config.compact === true}
+              .configValue=${'compact'}
               @change=${this._valueChanged}
             ></ha-switch>
           </ha-formfield>

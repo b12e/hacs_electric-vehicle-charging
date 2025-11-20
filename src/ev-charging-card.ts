@@ -20,7 +20,7 @@ interface EVChargingCardConfig extends LovelaceCardConfig {
   amperage_entity?: string;
   show_name?: boolean;
   show_metrics?: boolean;
-  theme?: 'default' | 'dark' | 'light';
+  compact?: boolean;
 }
 
 interface EntityState {
@@ -44,6 +44,7 @@ export class EVChargingCard extends LitElement {
       max_capacity: 17.4,
       show_name: true,
       show_metrics: true,
+      compact: false,
     };
   }
 
@@ -58,7 +59,7 @@ export class EVChargingCard extends LitElement {
     this.config = {
       show_name: true,
       show_metrics: true,
-      theme: 'default',
+      compact: false,
       ...config,
     };
   }
@@ -146,34 +147,40 @@ export class EVChargingCard extends LitElement {
     const chargingSpeed = this.getChargingSpeed();
 
     return html`
-      <ha-card>
+      <ha-card class="${this.config.compact ? 'compact' : ''}">
         <div class="card-content">
           ${this.config.show_name && this.config.name
-            ? html`<h2 class="card-title">${this.config.name}</h2>`
+            ? html`<div class="card-header">
+                <div class="name">${this.config.name}</div>
+              </div>`
             : ''}
 
-          <div class="battery-container">
-            <div class="battery-icon ${isCharging ? 'charging' : ''}">
-              <div class="battery-body">
-                <div class="battery-level" style="width: ${percentage}%"></div>
+          <div class="main-section">
+            <div class="icon-container">
+              <div class="battery-icon ${isCharging ? 'charging' : ''}">
                 ${isCharging
-                  ? html`<div class="charging-indicator ${chargingSpeed}">
-                      <div class="bolt">⚡</div>
-                    </div>`
-                  : ''}
+                  ? html`<div class="charging-bolt ${chargingSpeed}">⚡</div>`
+                  : html`<div class="battery-static">🔋</div>`}
               </div>
-              <div class="battery-terminal"></div>
             </div>
-          </div>
 
-          <div class="battery-info">
-            <div class="capacity">
-              <span class="current">${currentBattery.toFixed(1)}</span>
-              <span class="separator">/</span>
-              <span class="max">${maxCapacity.toFixed(1)}</span>
-              <span class="unit">kWh</span>
+            <div class="content-section">
+              <div class="primary-info">
+                <div class="percentage">${percentage.toFixed(0)}%</div>
+                <div class="capacity">
+                  ${currentBattery.toFixed(1)} / ${maxCapacity.toFixed(1)} kWh
+                </div>
+              </div>
+
+              <div class="progress-bar-container">
+                <div class="progress-bar">
+                  <div
+                    class="progress-fill ${isCharging ? 'charging' : ''}"
+                    style="width: ${percentage}%"
+                  ></div>
+                </div>
+              </div>
             </div>
-            <div class="percentage">${percentage.toFixed(0)}%</div>
           </div>
 
           ${this.config.show_metrics &&
@@ -181,12 +188,12 @@ export class EVChargingCard extends LitElement {
             this.config.voltage_entity ||
             this.config.amperage_entity)
             ? html`
-                <div class="metrics">
+                <div class="metrics-section">
                   ${this.config.power_entity
                     ? html`
-                        <div class="metric">
+                        <div class="metric-item">
                           <div class="metric-icon">⚡</div>
-                          <div class="metric-content">
+                          <div class="metric-info">
                             <div class="metric-label">Power</div>
                             <div class="metric-value">
                               ${power.toFixed(0)}
@@ -198,9 +205,9 @@ export class EVChargingCard extends LitElement {
                     : ''}
                   ${this.config.voltage_entity
                     ? html`
-                        <div class="metric">
+                        <div class="metric-item">
                           <div class="metric-icon">🔌</div>
-                          <div class="metric-content">
+                          <div class="metric-info">
                             <div class="metric-label">Voltage</div>
                             <div class="metric-value">
                               ${voltage.toFixed(1)}
@@ -212,9 +219,9 @@ export class EVChargingCard extends LitElement {
                     : ''}
                   ${this.config.amperage_entity
                     ? html`
-                        <div class="metric">
-                          <div class="metric-icon">⚡</div>
-                          <div class="metric-content">
+                        <div class="metric-item">
+                          <div class="metric-icon">🔆</div>
+                          <div class="metric-info">
                             <div class="metric-label">Current</div>
                             <div class="metric-value">
                               ${amperage.toFixed(1)}
@@ -239,89 +246,93 @@ export class EVChargingCard extends LitElement {
       }
 
       ha-card {
-        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        padding: 12px;
+      }
+
+      ha-card.compact {
+        padding: 8px 12px;
       }
 
       .card-content {
-        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        flex: 1;
       }
 
       .error {
         color: var(--error-color);
-        padding: 16px;
+        padding: 12px;
       }
 
-      .card-title {
-        margin: 0 0 16px 0;
-        font-size: 24px;
+      /* Header Section */
+      .card-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 4px;
+      }
+
+      .name {
+        font-size: 16px;
         font-weight: 500;
         color: var(--primary-text-color);
+        line-height: 1.2;
       }
 
-      .battery-container {
+      /* Main Section - Horizontal Layout (Mushroom Style) */
+      .main-section {
         display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      /* Icon Container - Left Side */
+      .icon-container {
+        display: flex;
+        align-items: center;
         justify-content: center;
-        margin: 24px 0;
+        flex-shrink: 0;
+        width: 42px;
+        height: 42px;
       }
 
       .battery-icon {
-        position: relative;
         display: flex;
         align-items: center;
+        justify-content: center;
         width: 100%;
-        max-width: 300px;
-      }
-
-      .battery-body {
-        position: relative;
-        width: 100%;
-        height: 80px;
-        border: 3px solid var(--primary-text-color);
-        border-radius: 8px;
-        background: var(--card-background-color);
-        overflow: hidden;
-      }
-
-      .battery-level {
-        position: absolute;
-        left: 0;
-        top: 0;
         height: 100%;
-        background: linear-gradient(90deg, #4caf50 0%, #8bc34a 100%);
-        transition: width 0.5s ease-in-out;
+        border-radius: 50%;
+        background: color-mix(in srgb, var(--state-icon-color, var(--state-inactive-color)) 10%, transparent);
+        transition: background 0.3s ease;
       }
 
-      .battery-terminal {
-        width: 8px;
-        height: 40px;
-        background: var(--primary-text-color);
-        border-radius: 0 4px 4px 0;
-        margin-left: 2px;
+      .battery-icon.charging {
+        background: color-mix(in srgb, var(--state-icon-active-color, var(--state-active-color)) 20%, transparent);
       }
 
-      .charging-indicator {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 2;
+      .charging-bolt,
+      .battery-static {
+        font-size: 28px;
+        line-height: 1;
       }
 
-      .bolt {
-        font-size: 32px;
+      .charging-bolt {
         animation: pulse 1s ease-in-out infinite;
-        filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.8));
       }
 
-      .charging-indicator.slow .bolt {
+      .charging-bolt.slow {
         animation-duration: 2s;
       }
 
-      .charging-indicator.medium .bolt {
+      .charging-bolt.medium {
         animation-duration: 1s;
       }
 
-      .charging-indicator.fast .bolt {
+      .charging-bolt.fast {
         animation-duration: 0.5s;
       }
 
@@ -333,96 +344,152 @@ export class EVChargingCard extends LitElement {
         }
         50% {
           opacity: 0.7;
-          transform: scale(1.1);
+          transform: scale(1.15);
         }
       }
 
-      .battery-info {
+      /* Content Section - Right Side */
+      .content-section {
         display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        margin: 16px 0;
-        padding: 0 8px;
+        flex-direction: column;
+        gap: 8px;
+        flex: 1;
+        min-width: 0;
       }
 
-      .capacity {
+      .primary-info {
         display: flex;
         align-items: baseline;
-        gap: 4px;
-        font-size: 20px;
-      }
-
-      .capacity .current {
-        font-weight: 600;
-        color: var(--primary-text-color);
-      }
-
-      .capacity .separator {
-        color: var(--secondary-text-color);
-      }
-
-      .capacity .max {
-        color: var(--secondary-text-color);
-      }
-
-      .capacity .unit {
-        font-size: 16px;
-        color: var(--secondary-text-color);
-        margin-left: 4px;
+        gap: 8px;
+        flex-wrap: wrap;
       }
 
       .percentage {
-        font-size: 28px;
+        font-size: 22px;
         font-weight: 600;
         color: var(--primary-text-color);
+        line-height: 1;
       }
 
-      .metrics {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 12px;
-        margin-top: 20px;
-        padding-top: 20px;
+      .capacity {
+        font-size: 14px;
+        font-weight: 400;
+        color: var(--secondary-text-color);
+        line-height: 1;
+      }
+
+      /* Progress Bar */
+      .progress-bar-container {
+        width: 100%;
+      }
+
+      .progress-bar {
+        position: relative;
+        width: 100%;
+        height: 4px;
+        background: color-mix(in srgb, var(--state-icon-color, var(--state-inactive-color)) 20%, transparent);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: var(--state-icon-color, var(--state-inactive-color));
+        border-radius: 2px;
+        transition: width 0.5s ease-in-out;
+      }
+
+      .progress-fill.charging {
+        background: var(--state-icon-active-color, var(--state-active-color));
+      }
+
+      /* Metrics Section */
+      .metrics-section {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 4px;
+        padding-top: 12px;
         border-top: 1px solid var(--divider-color);
       }
 
-      .metric {
+      .metric-item {
         display: flex;
         align-items: center;
-        gap: 12px;
-        padding: 12px;
-        background: var(--secondary-background-color);
-        border-radius: 8px;
+        gap: 8px;
+        flex: 1;
+        min-width: 0;
+        padding: 8px;
+        background: color-mix(in srgb, var(--primary-text-color) 5%, transparent);
+        border-radius: 12px;
       }
 
       .metric-icon {
-        font-size: 24px;
-        opacity: 0.8;
+        font-size: 20px;
+        opacity: 0.7;
+        flex-shrink: 0;
       }
 
-      .metric-content {
+      .metric-info {
         display: flex;
         flex-direction: column;
         gap: 2px;
+        min-width: 0;
+        flex: 1;
       }
 
       .metric-label {
-        font-size: 12px;
+        font-size: 11px;
+        font-weight: 500;
         color: var(--secondary-text-color);
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        line-height: 1;
       }
 
       .metric-value {
-        font-size: 18px;
+        font-size: 14px;
         font-weight: 600;
         color: var(--primary-text-color);
+        line-height: 1.2;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
+      /* Responsive Design */
       @media (max-width: 600px) {
-        .metrics {
-          grid-template-columns: 1fr;
+        .metrics-section {
+          flex-direction: column;
         }
+
+        .metric-item {
+          flex: none;
+          width: 100%;
+        }
+      }
+
+      /* Compact Mode */
+      ha-card.compact .main-section {
+        gap: 12px;
+      }
+
+      ha-card.compact .icon-container {
+        width: 36px;
+        height: 36px;
+      }
+
+      ha-card.compact .charging-bolt,
+      ha-card.compact .battery-static {
+        font-size: 24px;
+      }
+
+      ha-card.compact .percentage {
+        font-size: 18px;
+      }
+
+      ha-card.compact .capacity {
+        font-size: 12px;
       }
     `;
   }

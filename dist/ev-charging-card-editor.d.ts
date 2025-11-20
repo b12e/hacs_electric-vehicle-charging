@@ -10,6 +10,7 @@ interface EVChargingCardConfig {
     amperage_entity?: string;
     show_name?: boolean;
     show_metrics?: boolean;
+    compact?: boolean;
 }
 export declare class EVChargingCardEditor extends LitElement implements LovelaceCardEditor {
     hass: HomeAssistant;

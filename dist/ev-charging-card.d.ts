@@ -11,7 +11,7 @@ interface EVChargingCardConfig extends LovelaceCardConfig {
     amperage_entity?: string;
     show_name?: boolean;
     show_metrics?: boolean;
-    theme?: 'default' | 'dark' | 'light';
+    compact?: boolean;
 }
 export declare class EVChargingCard extends LitElement {
     hass: HomeAssistant;
