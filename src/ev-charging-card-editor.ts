@@ -21,7 +21,29 @@ export class EVChargingCardEditor extends LitElement implements LovelaceCardEdit
   @state() private _config!: EVChargingCardConfig;
 
   public setConfig(config: EVChargingCardConfig): void {
-    this._config = config;
+    this._config = {
+      show_name: true,
+      show_metrics: true,
+      compact: false,
+      ...config,
+    };
+  }
+
+  protected shouldUpdate(): boolean {
+    return true;
+  }
+
+  private _renderEntityPicker(value: string, label: string, onChange: (ev: CustomEvent) => void): TemplateResult {
+    return html`
+      <ha-entity-picker
+        .hass=${this.hass}
+        .value=${value}
+        .includeDomains=${['sensor']}
+        .entityFilter=${(entity: any) => entity.entity_id.startsWith('sensor.')}
+        allow-custom-entity
+        @value-changed=${onChange}
+      ></ha-entity-picker>
+    `;
   }
 
   protected render(): TemplateResult {
@@ -36,13 +58,11 @@ export class EVChargingCardEditor extends LitElement implements LovelaceCardEdit
         <!-- Battery Entity -->
         <div class="field">
           <label>Battery Entity (required)</label>
-          <ha-entity-picker
-            .hass=${this.hass}
-            .value=${this._config.battery_entity || ''}
-            .includeDomains=${['sensor']}
-            allow-custom-entity
-            @value-changed=${this._batteryChanged}
-          ></ha-entity-picker>
+          ${this._renderEntityPicker(
+            this._config.battery_entity || '',
+            'Battery Entity',
+            this._batteryChanged
+          )}
         </div>
 
         <!-- Max Capacity -->
@@ -66,13 +86,11 @@ export class EVChargingCardEditor extends LitElement implements LovelaceCardEdit
         <!-- Power Entity -->
         <div class="field">
           <label>Power Entity (optional)</label>
-          <ha-entity-picker
-            .hass=${this.hass}
-            .value=${this._config.power_entity || ''}
-            .includeDomains=${['sensor']}
-            allow-custom-entity
-            @value-changed=${this._powerChanged}
-          ></ha-entity-picker>
+          ${this._renderEntityPicker(
+            this._config.power_entity || '',
+            'Power Entity',
+            this._powerChanged
+          )}
         </div>
 
         <!-- Voltage Entity -->
@@ -80,13 +98,11 @@ export class EVChargingCardEditor extends LitElement implements LovelaceCardEdit
           ? html`
               <div class="field">
                 <label>Voltage Entity (optional)</label>
-                <ha-entity-picker
-                  .hass=${this.hass}
-                  .value=${this._config.voltage_entity || ''}
-                  .includeDomains=${['sensor']}
-                  allow-custom-entity
-                  @value-changed=${this._voltageChanged}
-                ></ha-entity-picker>
+                ${this._renderEntityPicker(
+                  this._config.voltage_entity || '',
+                  'Voltage Entity',
+                  this._voltageChanged
+                )}
               </div>
             `
           : ''}
@@ -96,13 +112,11 @@ export class EVChargingCardEditor extends LitElement implements LovelaceCardEdit
           ? html`
               <div class="field">
                 <label>Current/Amperage Entity (optional)</label>
-                <ha-entity-picker
-                  .hass=${this.hass}
-                  .value=${this._config.amperage_entity || ''}
-                  .includeDomains=${['sensor']}
-                  allow-custom-entity
-                  @value-changed=${this._amperageChanged}
-                ></ha-entity-picker>
+                ${this._renderEntityPicker(
+                  this._config.amperage_entity || '',
+                  'Amperage Entity',
+                  this._amperageChanged
+                )}
               </div>
             `
           : ''}
