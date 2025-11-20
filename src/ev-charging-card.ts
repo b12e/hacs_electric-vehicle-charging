@@ -8,6 +8,7 @@ import {
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant, LovelaceCardConfig } from 'custom-card-helpers';
+import './ev-charging-card-editor';
 
 interface EVChargingCardConfig extends LovelaceCardConfig {
   type: string;

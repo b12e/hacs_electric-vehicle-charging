@@ -1,5 +1,6 @@
 import { LitElement, PropertyValues, CSSResultGroup, TemplateResult } from 'lit';
 import { HomeAssistant, LovelaceCardConfig } from 'custom-card-helpers';
+import './ev-charging-card-editor';
 interface EVChargingCardConfig extends LovelaceCardConfig {
     type: string;
     name?: string;
@@ -25,7 +26,7 @@ export declare class EVChargingCard extends LitElement {
     protected render(): TemplateResult;
     static get styles(): CSSResultGroup;
     getCardSize(): number;
-    static getConfigElement(): HTMLElement;
+    static getConfigElement(): import("./ev-charging-card-editor").EVChargingCardEditor;
 }
 declare global {
     interface HTMLElementTagNameMap {
