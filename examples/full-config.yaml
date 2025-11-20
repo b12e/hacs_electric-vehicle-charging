@@ -1,0 +1,12 @@
+# Full configuration example for EV Charging Card
+# This shows all available options
+
+type: custom:ev-charging-card
+name: "My Electric Vehicle"
+battery_entity: sensor.ev_battery_level
+max_capacity: 17.4
+power_entity: sensor.ev_charging_power
+voltage_entity: sensor.ev_voltage
+amperage_entity: sensor.ev_current
+show_name: true
+show_metrics: true

@@ -1,0 +1,7 @@
+{
+  "name": "Electric Vehicle Charging Card",
+  "content_in_root": false,
+  "filename": "ev-charging-card.js",
+  "render_readme": true,
+  "homeassistant": "2021.11.0"
+}

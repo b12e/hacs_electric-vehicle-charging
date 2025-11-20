@@ -1,0 +1,41 @@
+# Example template sensors for creating entities
+# Add these to your configuration.yaml if your EV integration
+# doesn't provide the entities in the right format
+
+template:
+  - sensor:
+      # Convert battery percentage to kWh
+      - name: "EV Battery Level kWh"
+        unique_id: ev_battery_kwh
+        unit_of_measurement: "kWh"
+        device_class: energy
+        state_class: measurement
+        state: >
+          {% set percentage = states('sensor.ev_battery_percentage') | float(0) %}
+          {% set max_capacity = 17.4 %}
+          {{ (percentage / 100 * max_capacity) | round(2) }}
+
+      # Convert charging power from kW to W if needed
+      - name: "EV Charging Power Watts"
+        unique_id: ev_charging_power_w
+        unit_of_measurement: "W"
+        device_class: power
+        state_class: measurement
+        state: >
+          {% set power_kw = states('sensor.ev_charging_power_kw') | float(0) %}
+          {{ (power_kw * 1000) | round(0) }}
+
+      # Calculate charging current from power and voltage
+      - name: "EV Charging Current"
+        unique_id: ev_charging_current
+        unit_of_measurement: "A"
+        device_class: current
+        state_class: measurement
+        state: >
+          {% set power = states('sensor.ev_charging_power') | float(0) %}
+          {% set voltage = states('sensor.ev_voltage') | float(230) %}
+          {% if voltage > 0 %}
+            {{ (power / voltage) | round(1) }}
+          {% else %}
+            0
+          {% endif %}

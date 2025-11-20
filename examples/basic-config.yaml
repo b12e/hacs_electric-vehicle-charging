@@ -1,0 +1,6 @@
+# Basic configuration example for EV Charging Card
+# This is the minimal setup needed to get the card working
+
+type: custom:ev-charging-card
+battery_entity: sensor.ev_battery_level  # Your battery entity in kWh
+max_capacity: 17.4  # Your battery's maximum capacity in kWh
