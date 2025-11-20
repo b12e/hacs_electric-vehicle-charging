@@ -17,7 +17,7 @@ export declare class EVChargingCardEditor extends LitElement implements Lovelace
     private _config;
     private _helpers?;
     setConfig(config: EVChargingCardConfig): void;
-    protected loadCardHelpers(): Promise<void>;
+    protected loadEntityPicker(): Promise<void>;
     protected shouldUpdate(): boolean;
     private _renderEntityPicker;
     protected render(): TemplateResult;

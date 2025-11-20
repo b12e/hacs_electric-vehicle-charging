@@ -28,11 +28,15 @@ export class EVChargingCardEditor extends LitElement implements LovelaceCardEdit
       compact: false,
       ...config,
     };
-    this.loadCardHelpers();
+    this.loadEntityPicker();
   }
 
-  protected async loadCardHelpers(): Promise<void> {
-    this._helpers = await (window as any).loadCardHelpers();
+  protected async loadEntityPicker(): Promise<void> {
+    if (!window.customElements.get('ha-entity-picker')) {
+      const ch = await (window as any).loadCardHelpers();
+      const c = await ch.createCardElement({ type: 'entities', entities: [] });
+      await c.constructor.getConfigElement();
+    }
   }
 
   protected shouldUpdate(): boolean {
