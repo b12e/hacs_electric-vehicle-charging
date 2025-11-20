@@ -27,7 +27,6 @@ export declare class EVChargingCardEditor extends LitElement implements Lovelace
     private _powerChanged;
     private _voltageChanged;
     private _amperageChanged;
-    private _showNameChanged;
     private _showMetricsChanged;
     private _compactChanged;
     private _updateConfig;

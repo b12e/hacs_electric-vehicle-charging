@@ -132,13 +132,6 @@ export class EVChargingCardEditor extends LitElement implements LovelaceCardEdit
           : ''}
 
         <!-- Switches -->
-        <ha-formfield .label=${'Show Card Name'}>
-          <ha-switch
-            .checked=${this._config.show_name !== false}
-            @change=${this._showNameChanged}
-          ></ha-switch>
-        </ha-formfield>
-
         <ha-formfield
           .label=${'Show Metrics Panel'}
           .disabled=${isCompact}
@@ -235,14 +228,6 @@ export class EVChargingCardEditor extends LitElement implements LovelaceCardEdit
     } else {
       this._updateConfig({ amperage_entity: value });
     }
-  }
-
-  private _showNameChanged(ev: Event): void {
-    const target = ev.target as HTMLInputElement;
-    if (!this._config) {
-      return;
-    }
-    this._updateConfig({ show_name: target.checked });
   }
 
   private _showMetricsChanged(ev: Event): void {
