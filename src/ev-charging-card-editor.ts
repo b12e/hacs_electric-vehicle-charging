@@ -31,7 +31,19 @@ export class EVChargingCardEditor extends LitElement implements LovelaceCardEdit
 
     const target = ev.target as any;
     const configValue = target.configValue as keyof EVChargingCardConfig;
-    const value = target.checked !== undefined ? target.checked : target.value;
+
+    // Handle different event types
+    let value: any;
+    if (ev.detail && ev.detail.value !== undefined) {
+      // ha-entity-picker and similar components
+      value = ev.detail.value;
+    } else if (target.checked !== undefined) {
+      // ha-switch
+      value = target.checked;
+    } else {
+      // paper-input and other inputs
+      value = target.value;
+    }
 
     if (this._config[configValue] === value) {
       return;
@@ -45,7 +57,12 @@ export class EVChargingCardEditor extends LitElement implements LovelaceCardEdit
       if (value === '' || value === undefined) {
         delete newConfig[configValue];
       } else {
-        (newConfig as any)[configValue] = value;
+        // Convert to number for max_capacity
+        if (configValue === 'max_capacity') {
+          (newConfig as any)[configValue] = parseFloat(value) || 0;
+        } else {
+          (newConfig as any)[configValue] = value;
+        }
       }
     }
 
