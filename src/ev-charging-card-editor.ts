@@ -29,66 +29,83 @@ export class EVChargingCardEditor extends LitElement implements LovelaceCardEdit
       return html``;
     }
 
+    const isCompact = this._config.compact === true;
+
     return html`
       <div class="card-config">
         <!-- Battery Entity -->
-        <ha-entity-picker
-          .hass=${this.hass}
-          .value=${this._config.battery_entity}
-          .label=${'Battery Entity (required)'}
-          .includeDomains=${['sensor']}
-          .required=${true}
-          allow-custom-entity
-          @value-changed=${this._batteryChanged}
-        ></ha-entity-picker>
+        <div class="field">
+          <label>Battery Entity (required)</label>
+          <ha-entity-picker
+            .hass=${this.hass}
+            .value=${this._config.battery_entity || ''}
+            .includeDomains=${['sensor']}
+            allow-custom-entity
+            @value-changed=${this._batteryChanged}
+          ></ha-entity-picker>
+        </div>
 
         <!-- Max Capacity -->
         <ha-textfield
-          .label=${'Maximum Capacity (kWh)'}
-          .value=${this._config.max_capacity}
-          .type=${'number'}
-          .step=${0.1}
-          .min=${0}
-          .required=${true}
+          label="Maximum Capacity (kWh)"
+          .value=${String(this._config.max_capacity || '')}
+          type="number"
+          step="0.1"
+          min="0"
+          required
           @input=${this._maxCapacityChanged}
         ></ha-textfield>
 
         <!-- Card Name -->
         <ha-textfield
-          .label=${'Card Name (optional)'}
+          label="Card Name (optional)"
           .value=${this._config.name || ''}
           @input=${this._nameChanged}
         ></ha-textfield>
 
         <!-- Power Entity -->
-        <ha-entity-picker
-          .hass=${this.hass}
-          .value=${this._config.power_entity || ''}
-          .label=${'Power Entity (optional)'}
-          .includeDomains=${['sensor']}
-          allow-custom-entity
-          @value-changed=${this._powerChanged}
-        ></ha-entity-picker>
+        <div class="field">
+          <label>Power Entity (optional)</label>
+          <ha-entity-picker
+            .hass=${this.hass}
+            .value=${this._config.power_entity || ''}
+            .includeDomains=${['sensor']}
+            allow-custom-entity
+            @value-changed=${this._powerChanged}
+          ></ha-entity-picker>
+        </div>
 
         <!-- Voltage Entity -->
-        <ha-entity-picker
-          .hass=${this.hass}
-          .value=${this._config.voltage_entity || ''}
-          .label=${'Voltage Entity (optional)'}
-          .includeDomains=${['sensor']}
-          allow-custom-entity
-          @value-changed=${this._voltageChanged}
-        ></ha-entity-picker>
+        ${!isCompact
+          ? html`
+              <div class="field">
+                <label>Voltage Entity (optional)</label>
+                <ha-entity-picker
+                  .hass=${this.hass}
+                  .value=${this._config.voltage_entity || ''}
+                  .includeDomains=${['sensor']}
+                  allow-custom-entity
+                  @value-changed=${this._voltageChanged}
+                ></ha-entity-picker>
+              </div>
+            `
+          : ''}
 
         <!-- Amperage Entity -->
-        <ha-entity-picker
-          .hass=${this.hass}
-          .value=${this._config.amperage_entity || ''}
-          .label=${'Current/Amperage Entity (optional)'}
-          .includeDomains=${['sensor']}
-          allow-custom-entity
-          @value-changed=${this._amperageChanged}
-        ></ha-entity-picker>
+        ${!isCompact
+          ? html`
+              <div class="field">
+                <label>Current/Amperage Entity (optional)</label>
+                <ha-entity-picker
+                  .hass=${this.hass}
+                  .value=${this._config.amperage_entity || ''}
+                  .includeDomains=${['sensor']}
+                  allow-custom-entity
+                  @value-changed=${this._amperageChanged}
+                ></ha-entity-picker>
+              </div>
+            `
+          : ''}
 
         <!-- Switches -->
         <ha-formfield .label=${'Show Card Name'}>
@@ -98,14 +115,18 @@ export class EVChargingCardEditor extends LitElement implements LovelaceCardEdit
           ></ha-switch>
         </ha-formfield>
 
-        <ha-formfield .label=${'Show Metrics Panel'}>
+        <ha-formfield
+          .label=${'Show Metrics Panel'}
+          .disabled=${isCompact}
+        >
           <ha-switch
-            .checked=${this._config.show_metrics !== false}
+            .checked=${!isCompact && this._config.show_metrics !== false}
+            .disabled=${isCompact}
             @change=${this._showMetricsChanged}
           ></ha-switch>
         </ha-formfield>
 
-        <ha-formfield .label=${'Compact Mode (Mushroom Style)'}>
+        <ha-formfield .label=${'Compact Mode'}>
           <ha-switch
             .checked=${this._config.compact === true}
             @change=${this._compactChanged}
@@ -230,6 +251,18 @@ export class EVChargingCardEditor extends LitElement implements LovelaceCardEdit
         padding: 16px 0;
       }
 
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .field label {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--primary-text-color);
+      }
+
       ha-entity-picker,
       ha-textfield {
         width: 100%;
@@ -240,6 +273,11 @@ export class EVChargingCardEditor extends LitElement implements LovelaceCardEdit
         align-items: center;
         justify-content: space-between;
         padding: 8px 0;
+      }
+
+      ha-formfield[disabled] {
+        opacity: 0.5;
+        pointer-events: none;
       }
     `;
   }
